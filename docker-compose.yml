@@ -1,0 +1,52 @@
+# Docker Compose file Reference (https://docs.docker.com/compose/compose-file/)
+
+version: '3'
+
+# Define services
+services:
+
+  # App Service
+  app:
+    # Configuration for building the docker image for the service
+    build:
+      context: . # Use an image built from the specified dockerfile in the current directory.
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" # Forward the exposed port 8080 on the container to port 8080 on the host machine
+    restart: unless-stopped
+    depends_on:
+      - mysql_db
+      - redis
+#    environment: # Pass environment variables to the service
+#      REDIS_URL: redis:6379
+#      GO_VERSION: 1.16.7
+    networks: # Networks to join (Services on the same network can communicate with each other using their name)
+      - backend
+
+  mysql_db:
+    image: mysql:8
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: strong_password_1234
+      MYSQL_DATABASE: social_db
+      MYSQL_USER: www
+      MYSQL_PASSWORD: www123
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+#    command:
+#      - RUN init.sql /docker-entrypoint-initdb.d
+  # Redis Service
+  redis:
+    image: "redis:alpine" # Use a public Redis image to build the redis service
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
