@@ -30,26 +30,30 @@ func main() {
 	cfg := mysql.Config{
 		User:   os.Getenv("DBUSER"),
 		Passwd: os.Getenv("DBPASS"),
-		//Net:    "tcp",
-		//Addr:   "127.0.0.1:3306",
-		DBName: "social_db",
+		Net:    "tcp",
+		Addr:   "mysql_db:3306",
+		DBName: os.Getenv("DBNAME"),
 	}
 
-	client := redis.NewClient(&redis.Options{
-		//Addr:     "127.0.0.1:6379",
-		//Password: "",
-		//DB:       0,
-	})
+	f, err := os.OpenFile("logfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer f.Close()
 
+	log.SetOutput(f)
+	log.Println("Starting server")
+
+	client := redis.NewClient(&redis.Options{
+		Addr:     "redis:6379",
+		Password: "",
+		DB:       0,
+	})
+	log.Println(cfg.FormatDSN())
 	db, err = sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	//r := createRepository(db)
-
-	//fmt.Println(cfg)
-	//mux := http.NewServeMux()
 
 	app := app2.NewApp(context.Background())
 
@@ -68,7 +72,7 @@ func main() {
 		App:               app,
 		SessionRepository: sessionRepository,
 	}
-	//s := authProvider.GetSession()
+
 	router := mux.NewRouter()
 
 	router.HandleFunc("/login", apiHandler.Login).Methods("POST")

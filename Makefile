@@ -9,33 +9,47 @@ SHELL := /bin/bash
 .PHONY: default
 default: help
 
-.PHONY: remove ## Setup project from the beginning
-remove: prepare remove
+.PHONY: build
+build: prepare _build
 
-.PHONY: rebuild ## Setup project from the beginning
-build: prepare remove build
+.PHONY: start
+start: prepare _start
+
+.PHONY: stop
+stop:
+	docker compose stop
+
+.PHONY: rebuild
+rebuild: prepare down build
 
 .PHONY: prepare
 prepare:
 	{ \
-    source .env; \
- 	}
+	randpw(){ LC_CTYPE=C tr -dc "a-zA-Z0-9-_" < /dev/urandom < /dev/random | head -c 20; }; \
+	if [ ! -f .env ]; then \
+		echo "MYSQL_ROOT_PASSWORD=$$(randpw)" >> .env; \
+		echo "DBUSER=social" >> .env; \
+		echo "DBNAME=social" >> .env; \
+		echo "DBPASS=$$(randpw)" >> .env; \
+		set -a; \
+		source .env; \
+	else \
+		set -a; \
+		source .env; \
+	fi; \
+	}
 
-.PHONY: build
-build:
-	{ \
-    source .env; \
-    docker compose build \
-    }
+.PHONY: _build
+_build:
+	docker compose build
 
-.PHONY: remove
-remove:
-	{ \
-    source .env; \
-    docker compose down \
-    }
+.PHONY: _start
+_start:
+	docker compose up -d
 
-
+.PHONY: down
+down:
+	docker compose down
 .PHONY: help ## Show this help
 help:
 	@echo "List of supported commands:"

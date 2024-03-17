@@ -92,6 +92,7 @@ func (api ApiHandler) UserProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api ApiHandler) Login(w http.ResponseWriter, r *http.Request) {
+	log.Println("Login")
 	var c models.CredentialsForm
 	err := decodeJSONBody(w, r, &c)
 
@@ -101,6 +102,7 @@ func (api ApiHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s, err := api.UserService.Auth.Login(&c)
+	log.Println(err)
 	if err != nil {
 		http.Error(w, "Bad password", http.StatusBadRequest)
 		return

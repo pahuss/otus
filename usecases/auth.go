@@ -10,6 +10,7 @@ import (
 	"github.com/ramonmacias/go-auth-middleware/auth"
 	"github.com/redis/go-redis/v9"
 	"io"
+	"log"
 )
 
 type Auth struct {
@@ -30,7 +31,7 @@ func (a Auth) Register(registration *models.UserRegistration) (*models.Profile, 
 	}
 	registration.Password = passwordHash
 	id, err := a.UserRepository.InsertProfile(registration)
-
+	log.Println("Register insert", id, err)
 	if err != nil {
 		if errors.Is(err, repository.ErrProfileExist) {
 			err = ErrProfileExist

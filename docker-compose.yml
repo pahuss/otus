@@ -17,6 +17,11 @@ services:
     depends_on:
       - mysql_db
       - redis
+    volumes:
+      - ./logfile:/app/logfile
+    links:
+      - mysql_db
+      - redis
 #    environment: # Pass environment variables to the service
 #      REDIS_URL: redis:6379
 #      GO_VERSION: 1.16.7
@@ -26,16 +31,19 @@ services:
   mysql_db:
     image: mysql:8
     restart: always
+#    hostname: mysql
     ports:
       - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: strong_password_1234
-      MYSQL_DATABASE: social_db
-      MYSQL_USER: www
-      MYSQL_PASSWORD: www123
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DBNAME}
+      MYSQL_USER: ${DBUSER}
+      MYSQL_PASSWORD: ${DBPASS}
     volumes:
       - ./db:/docker-entrypoint-initdb.d
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend
 #    command:
 #      - RUN init.sql /docker-entrypoint-initdb.d
   # Redis Service
@@ -50,3 +58,7 @@ services:
 networks:
   backend:
     driver: bridge
+
+volumes:
+  mysql_db:
+  redis:
