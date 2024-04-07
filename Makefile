@@ -31,6 +31,8 @@ prepare:
 		echo "DBUSER=social" >> .env; \
 		echo "DBNAME=social" >> .env; \
 		echo "DBPASS=$$(randpw)" >> .env; \
+		echo "DBHOST=mysql_db:3306" >> .env; \
+		echo "REDISHOST=redis:6379" >> .env; \
 		set -a; \
 		source .env; \
 	else \

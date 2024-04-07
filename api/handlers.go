@@ -76,6 +76,29 @@ func (api ApiHandler) Profile(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(p)
 }
 
+func (api ApiHandler) Search(w http.ResponseWriter, r *http.Request) {
+	firstName := r.URL.Query().Get("firstName")
+	lastName := r.URL.Query().Get("lastName")
+
+	if firstName == "" && lastName == "" {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	searchData := models.Profile{
+		FirstName: firstName,
+		LastName:  lastName,
+	}
+
+	p, err := api.UserService.Search(searchData)
+
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+
+	json.NewEncoder(w).Encode(p)
+}
+
 func (api ApiHandler) UserProfile(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	u, err := userByID(id, api.Db)

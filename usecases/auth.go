@@ -30,7 +30,7 @@ func (a Auth) Register(registration *models.UserRegistration) (*models.Profile, 
 		return nil, ErrProfileExist
 	}
 	registration.Password = passwordHash
-	id, err := a.UserRepository.InsertProfile(registration)
+	id, err := a.UserRepository.InsertProfile(models.UserRegistrationToUser(registration))
 	log.Println("Register insert", id, err)
 	if err != nil {
 		if errors.Is(err, repository.ErrProfileExist) {

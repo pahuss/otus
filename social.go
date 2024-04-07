@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/pahuss/otus/api"
@@ -14,25 +12,15 @@ import (
 	"github.com/pahuss/otus/usecases"
 	"github.com/ramonmacias/go-auth-middleware/auth"
 	"github.com/ramonmacias/go-auth-middleware/middleware"
-	"github.com/redis/go-redis/v9"
 	"log"
 	"net/http"
 	"os"
 )
 
-var db *sql.DB
-
 func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
 		panic("Load environment error")
-	}
-	cfg := mysql.Config{
-		User:   os.Getenv("DBUSER"),
-		Passwd: os.Getenv("DBPASS"),
-		Net:    "tcp",
-		Addr:   "mysql_db:3306",
-		DBName: os.Getenv("DBNAME"),
 	}
 
 	f, err := os.OpenFile("logfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
@@ -44,27 +32,18 @@ func main() {
 	log.SetOutput(f)
 	log.Println("Starting server")
 
-	client := redis.NewClient(&redis.Options{
-		Addr:     "redis:6379",
-		Password: "",
-		DB:       0,
-	})
-	log.Println(cfg.FormatDSN())
-	db, err = sql.Open("mysql", cfg.FormatDSN())
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	app := app2.NewApp(context.Background())
+	app.InitDb(os.Getenv("DBUSER"), os.Getenv("DBPASS"), os.Getenv("DBNAME"), os.Getenv("DBHOST"), "tcp")
+	app.InitRedis(os.Getenv("REDISHOST"), "", 0)
 
 	sessionRepository := &repository.SessionRepository{
-		Redis: client,
+		Redis: app.Redis,
 	}
 
-	us := usecases.NewUserService(db, client, sessionRepository)
+	us := usecases.NewUserService(app.Db, app.Redis, sessionRepository)
 
 	apiHandler := api.ApiHandler{
-		Db:          db,
+		Db:          app.Db,
 		UserService: us,
 		App:         app,
 	}
@@ -77,6 +56,9 @@ func main() {
 
 	router.HandleFunc("/login", apiHandler.Login).Methods("POST")
 	router.HandleFunc("/user/register", apiHandler.Register).Methods("POST")
+
+	// пока что оставляю не закрытым автроризацией
+	router.HandleFunc("/user/search", apiHandler.Search).Methods("GET")
 
 	apiRouter := router.PathPrefix("/").Subrouter()
 	apiRouter.HandleFunc("/user/get/{id}", apiHandler.Profile).Methods("GET")

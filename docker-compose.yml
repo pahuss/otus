@@ -19,6 +19,7 @@ services:
       - redis
     volumes:
       - ./logfile:/app/logfile
+      - ./people.csv:/app/people.csv
     links:
       - mysql_db
       - redis

@@ -8,6 +8,7 @@ type User struct {
 	Age       int
 	Hobbies   string
 	City      int
+	Password  string
 }
 
 type Profile struct {
@@ -37,3 +38,41 @@ type Credentials struct {
 	Email    string
 	Password string
 }
+
+func UserRegistrationToUser(regForm *UserRegistration) *User {
+	return &User{
+		Email:     regForm.Email,
+		Password:  regForm.Password,
+		FirstName: regForm.FirstName,
+		LastName:  regForm.LastName,
+	}
+
+}
+
+func ProfileToUser(user *Profile) *User {
+	return &User{
+		ID:        user.ID,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Age:       user.Age,
+	}
+}
+
+func UserToProfile(user User) Profile {
+	return Profile{
+		ID:        user.ID,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Age:       user.Age,
+	}
+}
+
+//func UserRegistrationToProfile(regForm *UserRegistration) *Profile {
+//	return &Profile{
+//		Email:     regForm.Email,
+//		FirstName: regForm.FirstName,
+//		LastName:  regForm.LastName,
+//	}
+//}

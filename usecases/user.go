@@ -24,6 +24,14 @@ func (s UserService) Profile(email string) (*models.Profile, error) {
 	return &profile, nil
 }
 
+func (s UserService) Search(data models.Profile) (*[]models.Profile, error) {
+	profiles, err := s.UserRepository.Search(data)
+	if err != nil {
+		return nil, err
+	}
+	return &profiles, nil
+}
+
 func NewUserService(db *sql.DB, rc *redis.Client, sr *repository.SessionRepository) *UserService {
 	r := &repository.UserRepository{
 		Db: db,
